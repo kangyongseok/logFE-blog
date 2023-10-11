@@ -4,7 +4,7 @@ const siteMetadata = {
   author: '강용석',
   headerTitle: '.logFE 블로그',
   description: 'A blog created with Next.js and Tailwind.css',
-  language: 'kr',
+  language: 'en-us',
   theme: 'system', // system, dark or light
   siteUrl: 'https://log-fe-blog.vercel.app/',
   siteRepo: 'https://github.com/kangyongseok/logFE-blog',
@@ -17,7 +17,7 @@ const siteMetadata = {
   // facebook: 'https://facebook.com',
   // youtube: 'https://youtube.com',
   // linkedin: 'https://www.linkedin.com',
-  locale: 'KR',
+  locale: 'en-US',
   analytics: {
     // If you want to use an analytics provider you have to add it to the
     // content security policy in the `next.config.js` file.

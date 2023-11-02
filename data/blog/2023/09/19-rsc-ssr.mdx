@@ -1,9 +1,165 @@
 ---
-title: RSC vs SSR
+title: SPA vs CSR vs SSR vs RSC
 date: 2023.09.12
 tags: ['Next13', 'Server Component', 'FrontEnd']
 draft: true
 summary: 서버컴포넌트와 서버사이드 렌더링에 대해서 알아보기
 ---
 
+# SPA (Single Page Application)
+말 그대로 하나의 페이지로 실행되는 어플리케이션이라고 볼 수 있습니다.
+웹페이지라고하면 `html` 파일 로 구성된것을 말하는데 전통적인 웹 페이지 같은경우엔 한개의 페이지당 하나의 html 이 있다고 볼 수 있습니다.
+- `home / my / shop / products`   
+이런 메뉴를 갖는 서비스가 있을때 4개의 메뉴가 있다면 4개의 페이지가 있고 4개의 각각의 html 파일이 존재합니다.  
+SPA 에서는 하나의 html 내에서 4개의 메뉴를 스크립트로 다르게 보이도록 처리합니다.
 
+### VanilaJS
+간단하게 순수 자바스크립트와 html 로 SPA 를 만들어 볼 수 있습니다.  
+
+![vanila-spa](/static/images/2309/vanila-spa.gif)  
+
+몇가지 문제점들이 존재하지만 일단은 깜빡임없이 페이지가 변경되는것처럼 처리가 가능합니다. 재미있는건 네트워크 탭을 통해서 볼때 입니다.  
+  
+
+![vanila-spa2](/static/images/2309/vanila-spa2.png)
+  
+새로고침후 네트워크탭을 보았을때 인데요 화면에 보여주지 않는 스크립트 파일까지 모두 불러와 다운로드 합니다.  
+지금은 몇개 안되어서 상관없지만 페이지기능이 커지고 코드가 늘어나고 페이지도 늘어나게되면 사용자는 처음부터 엄청난 리소스를 다운받게 됩니다.
+  
+어디서 많이 들어본 얘기일텐데 리액트하면서 많이 보거나 들었던 얘기일것같습니다.
+
+### React
+리액트 또한 초기 페이지를 확인해보면 root 만 있고 내부엔 어떤 엘리먼트도 존재하지 않습니다. 그리고 bundle.js 를 확인해보면 개별 페이지의 소스코드를 모두 갖고 있습니다. 
+  
+여기까진 바닐라스크립트와 다른점은 개별 스크립트 파일로 다운받던것이 하나의 스크립트 파일로 번들링 되었다는겁니다.
+  
+결국 SPA 는 스크립트소스를 한번에 내려받는다는 문제가 있는데요 리액트에서는 이것을 해결할 방법이 있습니다. lazy 를 사용함으로써 코드스플리팅을 해 줄 수 있습니다.
+```js
+const About = lazy(() => import('./src/pages/About'))
+```
+  
+이렇게하면 about 페이지에 접근할때 관련 스크립트 파일을 내려받습니다.
+  
+![react-lazy](/static/images/2309/react-lazy.png)
+  
+
+### 한 커뮤니티에서 받았던 질문
+>JSP 에서 ajax로 데이터를 호출해와 화면에 뿌려주는데 이건 SPA가 아닌가요?
+  
+일단 결론은 JSP 에서 데이터 호출해서 페이지 깜빡임 없이 데이터를 보여준다고 해서 SPA 라고 단편적으로 볼 수 없다고 답변했습니다.
+  
+SPA 에서의 정의는 하나의 html 을 두고 첫 로드시 전체 스크립트를 받아 페이지 전환시 다시 전체 html 을 그리는것이 아닌 변경된 부분에 대해서만 스크립트로 교체하는것이라고 할 수 있습니다. 
+  
+JSP 로 웹을 구현하는것자체만으로도 SPA 랑은 이미 다른 개념을 갖고있습니다. JSP 는 PHP 와 마찬가지로 전통적인 서버사이드렌더링 방식을 갖고있고 서버에서 완성된 개별 html 을 내려줍니다. 
+
+---
+
+# CSR (Client Side Rendering)
+SPA 와 CSR 에 대해서 혼동되는 경우가 있을 수 있는데 SPA 의 렌더링 방식이 CSR 이다 라고 할 수 있습니다. 결론은 둘은 서로 다른 개념입니다.  
+Client 는 여기서 브라우저를 얘기하고 스크립트를 통해 브라우저에서 렌더링을 하는 방식이라고 볼 수 있습니다.  
+  
+html 파일 하나만 있고 컨텐츠만 변경해주는 방식이기 때문에 meta 정보를 동적으로 변경하거나 담을수 없어 SEO 측면에서 불리한면을 갖고있습니다. 메타정보와 컨텐츠를 검색봇이 수집할 수 없기 검색엔진의 검색 순위에서 밀리거나 제외됩니다.
+
+---
+
+# Server Component
+서버컴포넌트에 대해서 이해하기위해서 몇가지 테스트를 진행해봤습니다.  
+### 번들크기
+서버컴포넌트일때와 클라이언트컴포넌트로 사용할때의 번들크기 변화를 확인해봤습니다.
+
+**use client**  
+
+![sc-bundle1](/static/images/2309/sc-bundle1.png)
+
+**server component**    
+
+![sc-bundle2](/static/images/2309/sc-bundle2.png)
+
+```jsx:/src/app/my/page.tsx
+import Button from '@/components/Button'
+import Input from '@/components/Input'
+
+function My() {
+  return (
+    <div>
+      <Input />
+      <Button />
+    </div>
+  )
+}
+
+export default My
+```
+Next13 버전 이후부터 앱 라우터를 사용할경우 모든 컴포넌트는 기본적으로 서버컴포넌트입니다. 클라이언트컴포넌트로 사용하기위해서는 `use client`를 선언해 줘야 합니다.
+  
+기본형태의 컴포넌트를 추가하고 mypage 에 use client 를 넣고 비교해본 결과 입니다. use client 를 사용할경우 하위 컴포넌트들 역시 클라이언트컴포넌트로 사용됩니다.
+  
+### 데이터 가져오기
+Next.js 는 fetch 웹 api 를 확장합니다.  
+fetch 를 사용할경우 기본적으로 캐시합니다. 빌드 또는 요청시 데이터를 가져오고 캐시하고 각 데이터 요청에서 재사용이 가능합니다.
+
+### 클라이언트 구성요소는 비동기 기능이 될 수 없습니다.
+```jsx
+// 서버컴포넌트에서는 가능
+export default async function Page() {
+  const data = await getData()
+
+  return (
+    <div></div>
+  )
+}
+```
+use client 를 선언하여 클라이언트 컴포넌트로 사용하거나 일반적인 페이지 라우트로 사용할 경우에는 비동기 기능을 활용할 수 없습니다.
+
+### 서버컴포넌트내에서는 서버 또는 클라이언트 컴포넌트 모두 사용가능
+### 클라이언트컴포넌트에서는 서버컴포넌트 사용이 불가합니다.
+### 대신 아래와 같이 사용 가능
+```jsx
+import ServerComponent from './ServerComponent'
+import ClientComponent from './ClientComponent'
+
+export default function Page() {
+  return (
+    <ClientComponent>
+      <ServerComponent />
+    </ClientComponent>
+  )
+}
+```
+```jsx
+'use client'
+
+export default function ClientComponent({children}) {
+  return (
+    <>
+      {children}
+    </>
+  )
+}
+```
+
+
+
+---
+app 디렉터리를 사용할경우 기본적으로 서버컴포넌트요소가 된다.
+pages 가 클라이언트 구성요소인것과는 다르다
+앱 라우터에서
+
+서버컴포넌트는 세가지 서버렌더링 전략이 있다.
+- 정적 렌더링
+- 동적 렌더링
+- 스트리밍
+
+
+정적렌더링
+- 빌드시 렌더링 되거나 데이터 재검증 후 백그라운드에서 렌더링  
+- 그 결과는 캐싱되어 CDN 으로 푸쉬될 수 있다.
+- 정적 블로그 게시물이나 제품 페이지같은 빌드시 알 수 있는 데이터가 있는경우
+
+동적렌더링
+요청시 각 사용자에 대한 경로가 렌더링됨
+
+스트리밍
+서버에서 UI를 점진적으로 렌더링
+준비가되면 클라이언트로 스트리밍
+사용자는 전체 콘텐츠의 렌더링이 완료되기전에 페이지의 일부를 즉시 볼 수 있다.

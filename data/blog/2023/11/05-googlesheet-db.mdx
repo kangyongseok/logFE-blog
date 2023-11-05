@@ -1,0 +1,144 @@
+---
+title: 구글시트를 디비로 활용하기
+date: 2023.11.05
+tags: ['googleSheet', 'frontend', 'nextjs']
+draft: false
+layout: PostSimple
+summary: 구글시트를 디비로 활용하기 위한 환경설정 정리
+---
+
+간단한 원페이지로된 랜딩페이지를 만들일이 생겼습니다.  
+일종의 소개페이지인데 필요한 기능이 랜딩페이지에 포함될 텍스트나 이미지를 원하는대로 변경할 수 있어야 합니다. 그리고 추가로 필요하다면 정보의 요청을 원하는 사용자가 있다면 사용자 정보를 수집할 수도 있어야 합니다. 
+  
+너무 별거 없는 기능이라 디비나 별도의 서버구축 없이 진행해도 되겠다 싶었고 구글시트를 디비로 활용하면 좋겠다 생각했습니다.
+  
+관련해서 여러글을 찾아봤는데 잘 정리된 내용이 없었습니다. 구글시트 api 를 활용하는 방식도 제가 알던 예전과 달라진 부분도 있어서 공식문서를 잘 읽고 진행해야하는데 불친절한 부분들이 많아 직접 정리해두려고합니다.
+  
+구글시트 자체가 프라빗하게 관리할 수 있는 부분이라 보안적인 측면에서도 믿을만한 부분이라고 생각하였습니다.
+  
+## 환경구성
+- Next.js
+- Next.js api
+- [google-auth-library](https://www.npmjs.com/package/google-auth-library)
+- [google-spreadsheet](https://www.npmjs.com/package/google-spreadsheet)
+  
+리액트로할수도있겠지만 구글시트 api를 사용하기위해 설치하고 작성해야하는 코드가 클라이언트가 아니라 서버단에서 호출하고 작성해야하는 부분이라 Next.js 의 api 를 활용하기위해서 Next 를 선택하였습니다.
+  
+그리고 CRA 를 사용했을때 react-script 5버전에 대한 이슈와 버전을 다운그레이드해서 쓰려고해도 여러에러가 발생함에 따라 못써먹겠더라구요
+  
+## 순서
+1. [구글클라우드](https://cloud.google.com/?hl=ko)에 접속합니다.
+2. 돋보기 버튼을 누르고 검색을 `google sheet api` 를 검색합니다.
+3. 검색결과중 가장 맨위에 있는 검색결과를 선택합니다.
+  
+![google sheet api](/static/images/2311/google-sheet-api.png)
+  
+4. 사용버튼을 클릭합니다.
+  
+![google sheet use](/static/images/2311/google-sheet-use.png)
+  
+5. 프로젝트가 없다면 프로젝트를 하나 만드셔야 합니다.
+6. 그러고나면 사용자 인증정보에서 서비스계정관리를 들어갑니다.
+  
+![user-auth](/static/images/2311/user-auth.png)
+  
+7. 서비스계정을 만들어줍니다. 선택사항은 건너뛰어도됩니다.
+  
+![create-user](/static/images/2311/create-user.png)
+  
+8. 그러면 메일주소로 계정이 하나 생성되는데 해당 계정을 클릭하고 들어가면 상단에 탭중에 키 라는 탭으로 이동합니다.
+  
+![create-key](/static/images/2311/create-key.png)
+  
+JSON 형태로 키를 만들면 json 파일 하나가 다운로드 됩니다.
+  
+9. 그리고 구글시트를 하나 생성한다음 공유이메일주소로 생성된 이메일 계정으로 공유를 합니다.
+  
+10. 시트에 적당한 값들을 넣어둡니다.
+  
+## 중간정리
+여기까지하면 일단 구글클라우드플랫폼에서 설정할건 완료되었습니다.  
+이 생성한 시트의 url 주소중에 문서ID 와 시트 아이디를 추가로 활용합니다.  
+그리고 아까 다운받았던 json 파일을 열어보면 여러 값들이 있는데 시트를 활용하기위해서 필요한값은 두개입니다.
+- `client_email`
+- `private_key`
+  
+이렇게 두 값이고 관련 글을 찾아보면 json 파일을 직접 프로젝트에 등록하고 파일을 불러와서 사용하는데 해당 파일과 키는 노출되면 안되는 민감정보에 해당합니다. 때문에 .env.local 에 저는 넣고 활용하려고 합니다.
+  
+## Next.js (Page router 로 생성했습니다.)
+Next.js 프로젝트를 하나 생성하고 환경구성에 작성했던 구글관련 두개의 패키지를 설치합니다.
+
+```bash
+npm i google-auth-library google-spreadsheet
+```
+
+```bash:.env.local
+GOOGLE_CLIENT_EMAIL=".json 파일에서 client_email"
+GOOGLE_PRIVATE_KEY=".json 파일에서 private_key"
+```
+  
+```ts:/src/pages/api/googleSheets.ts {12-13, 16, 23} showLineNumbers
+import type { NextApiRequest, NextApiResponse } from 'next'
+import {GoogleSpreadsheet} from "google-spreadsheet";
+import { JWT } from 'google-auth-library';
+
+const SCOPES = [
+  'https://www.googleapis.com/auth/spreadsheets',
+  'https://www.googleapis.com/auth/drive.file',
+];
+
+const getGoogleSheet = async () => {
+  const jwt = new JWT({
+    email: process.env.GOOGLE_CLIENT_EMAIL,
+    key: process.env.GOOGLE_PRIVATE_KEY,
+    scopes: SCOPES,
+  });
+  const doc = new GoogleSpreadsheet('1OWNg1l9xk_lQZpisxZEZxI8CfzC97QrbeCJmaop_Z7I', jwt)
+  await doc.loadInfo()
+  return doc
+}
+
+const fetchGoogleSheetRows = async () => {
+  const googlesheet = await getGoogleSheet()
+  const sheeByIdElement = googlesheet.sheetsById[0];
+  const rows = await sheeByIdElement.getRows();
+  
+  return {
+    name: rows[0].get('name'),
+    phone: rows[0].get('phone')
+  }
+}
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  res.status(200).json({data: await fetchGoogleSheetRows()})
+}
+```
+
+![Google-sheet-id](/static/images/2311/google-sheet-id.png)
+  
+빨간색 시트 아이디가 코드에서 `16번째` 줄에 해당하는 값입니다.  
+그리고 `12, 13` 라인 코드가 환경변수로 저장한 값을 가져오는 코드입니다.
+  
+`NEXT_PUBLIC_` 을 붙이지 않은이유는 해당 환경변수는 클라이언트 즉 브라우저단에서 사용되지않고 서버에서만 사용할거라 붙이지 않았습니다.
+
+```jsx
+const fetchData = async () => {
+  const response = await fetch('/api/googleSheets')
+  const data = await response.json()
+  console.log(data)
+}
+useEffect(() => {
+  fetchData()
+}, [])
+```
+호출해서 사용할땐 대충 이런식으로 작성해주면 됩니다.
+
+### 결과
+![result-sheet](/static/images/2311/result-sheet.png)
+
+---
+
+# 참고자료
+- [google-spreadsheet 문서](https://theoephraim.github.io/node-google-spreadsheet/#/?id=working-with-rows)
+- [https://soojae.tistory.com/67](https://soojae.tistory.com/67)
+

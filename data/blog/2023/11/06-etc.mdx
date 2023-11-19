@@ -1,0 +1,45 @@
+---
+title: 여러가지 개념 정리하기
+date: 2023.11.06
+tags: ['sentry', 'electron', 'sdk', 'js class']
+draft: true
+layout: PostSimple
+summary: 생각나는대로 알고싶은 개념들을 무작위로 정리합니다.
+---
+
+## Javascript SDK 개발 방법
+```js
+Kakao.Auth.authorize({
+  redirectUri: ''
+})
+Kakao.Auth.setAccessToken(token)
+Kakao.Auth.getStatusInfo()
+
+const httpClient = new devSdk.HttpClient(BASE_URL, API_KEY, API_SECRET)
+httpClient.time().then()
+
+const onpay = Naver.Pay.create({})
+
+AUTHNICE.requestPay({
+  clientId: '',
+  method: 'card',
+  orderId: '',
+  amount: 1000
+  goodsName: '',
+  returnUrl: ''
+})
+
+FB.init({
+  appId: '',
+  status: true
+})
+
+FB.login((response) => {})
+
+AWS.config.update({})
+s3 = new AWS.S3({apiVersion: ''})
+s3.createBucket(params, function(err, data) {
+
+})
+```
+

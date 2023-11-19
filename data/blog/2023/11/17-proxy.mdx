@@ -1,0 +1,161 @@
+---
+title: Proxy 정리
+date: 2023.11.17
+tags: ['네트워크', '프록시', '프록시패턴', 'HTTP']
+draft: true
+layout: PostSimple
+summary: Proxy 와 관련된 내용을 정리합니다.
+---
+
+# 프록시 사전 정의
+>대리(행위)나 대리권, 대리투표, 대리인 등을 뜻한다.
+<br />
+# 개념
+프록시는 중개자이고 그말은 중간에 껴서 무언가를 할 수 있는 존재라고 할 수 있다.
+  <br />
+# 자바스크립트 내장객체의 프록시
+자바스크립트에는 `Proxy` 라는 내장객체를 갖고있다.  
+해당 객체를 사용하면 객체에 대한 기본 작업을 가로채고 재정의할 수 있다.  
+프록시객체를 사용하면 `Object` 대신 사용가능한 객체를 생셩한다.  
+프록시 객체는 속성 액세스를 기록하고, 입력의 유효성을 검사하고, 형식을 지정하거나 삭제할 수 있다.  
+```js
+new Proxy(target, handler)
+```
+프록시는 두개의 인자를 받는다  
+- target: 원본객체
+- handler: 가로채는 작업과 재정의하는 방법을 정의하는 객체
+  
+핸들러라는 이름때문에 함수를 생성해서 사용한다고 생각할 수 있는데 객체로 생성하여 핸들러를 넘겨준다.
+
+```js
+const handler = {
+  get(target, prop, receiver) {
+    return "hello"
+  }
+  set(target, prop, value, receiver) {}
+}
+```
+  
+프록시를 활용하면 객체의 데이터 표현을 다르게 출력하거나  
+객체에 값을 할당할때 정해진 규칙이나 범위의 값이 아니면 에러를 출력하도록 할 수 있다.
+  
+특정 조건에 따라 get 이나 set 동작 처리를 할때 `Reflect` 라는 내장객체를 같이 사용할 수 있다. 메서드의 종류는 프록시의 메소드들과 종류가 동일하고 다른 전역 객체들과 다른점은 생성자가 아니기때문에  `new` 키워드를 붙여서 사용하지 않는다.
+  
+```js
+const target = {
+  message1: "hello",
+  message2: "everyone",
+};
+
+const handler3 = {
+  get(target, prop, receiver) {
+    if (prop === "message2") {
+      return "world";
+    }
+    return Reflect.get(...arguments);
+  },
+};
+
+const proxy3 = new Proxy(target, handler3);
+
+console.log(proxy3.message1); // hello
+console.log(proxy3.message2); // world
+
+```
+
+- [MDN Proxy](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
+- [MDN Reflect](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Reflect)
+- [get() 메서드](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/get)
+- [set() 메서드](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/set)
+
+  
+## HTTP 에서의 프록시
+HTTP 프록시 서버는 웹 서버이기도 하면서 웹 클라이언트 이기도 하다.  
+클라이언트에게는 적절한 요청을 다시 응답해야만하고 요청을 서버로 보내기도 한다.
+
+### 활용예시
+- 성인컨텐츠를 차단하는 필터로 사용가능
+- 접근제어자 역할
+- 보안을 강화하기위한 역할로 활용
+- 캐싱역할
+- 대리프록시 (리버스프록시 또는 서버가속기)
+- 트랜스코딩 프록시 (이미지의 크기를 줄이거나 텍스트파일을 압축하거나)
+
+## 프록시 서버
+클라이언트와 서버 사이에서 데이터를 전달해주며 웹 캐시 기능이 있는 경우가 많다.  
+경우에 따라서 IP 주소가 서버에게 노출이 될수도 있고 아닐수도있다.  
+프록시 서버가 설치된 처음 목적은 `웹 서핑을 비록한 인터넷 속도의 향상`이었다.  
+이 역할은 현재 CDN이 하고있다.
+
+## 패턴으로서의 프록시
+프록시패턴은 `객체지향 디자인패턴`중 하나로 다른 객체에 대한 접근을 제어하거나 중간에서 대리역할을 하는 객체를 제공하는 패턴입니다.
+- 객체에 대한 추가적인 기능을 제공하거나
+- 객체에대한 접근을 제어하기위한 목적으로 사용
+
+## NextJS 에서의 프록시
+개발환경에서 API 호출을 다룰때 사용할 수 있다.  
+로컬 개발 서버에서 백엔드 API 서버로 요청을 보낼때 프록시를 설정할 수 있고 주로 CORS 를 우회할때 사용할 수 있다.
+```js:next.config.js
+module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://server.com/api/:path*'
+      }
+    ]
+  }
+}
+```
+브라우저는 로컬서버로 요청을 보내고 로컬서버에서 백엔드로 동일 도메인으로 API를 호출하여 CORS 이슈를 해결할 수 있다.
+<br />
+## 리버스 프록시
+포워드프록시와 리버스프록시가 있는데 차이점이 조금 헷갈리긴했다.  
+포워드프록시는 클라이언트가 요청하는 EndPoint 가 실제 서버 도메인이고 프록시는 클라이언트와 원 서버와의 통신을 담당한다.  
+리버스프록시는 클라이언트가 요청하는 EndPoint 가 프록시 서버의 도메인이되고 실제 서버의 정보는 알 수 없다.
+  
+포워드프록시는 서버가 클라이언트의 정보를 알수 없게 숨길 수 있고 프록시 서버는 서버를 숨기기때문에 클라이언트는 실제 서버의 정보를 알 수 없다.
+
+```bash
+# 정방향 프록시 서버 (출구 프록시)
+1. 클라이언트는 웹 요청을 보낼때 먼저 클라이언트의 프록시 서버로 이동
+2. 프록시 서버가 클라이언트의 IP 주소를 자체 IP 주소로 바꿈
+3. 프록시 서버가 웹 요청을 서버로 전달
+4. 서버가 요청을 처리하고 응답데이터를 다시 프록시 서버로 전달
+5. 프록시 서버가 응답을 클라이언트에게 전달
+```
+
+
+<br />
+## 비슷한듯 아닌듯
+### 프록시패턴과 axios 의 인터셉트
+기본개념이나 방식은 비슷한 부분을 갖고 있다.  
+여기서 알고싶은건 axios 의 `인터셉트가 프록시패턴을 활용하고 있는가?`  
+결론부터 말하자면  
+- axios 의 인터셉터는 HTTP 통신을 가로채고 조작하고
+- 프록시패턴은 객체의 접근을 제어하거나 추가 기능을 제공하는 디자인 패턴
+  
+프록시패턴은 좀더 넓은 범위에서 다양하게 적용되거나 사용될 수 있다.
+
+axios 인터셉터는 주로 클라이언트에서 서버로의 통신에 관여하는 메소드로   
+요청을 보내기전이나 응답을 받은 후에 로직을 추가하거나 변경 가능
+
+### 프록시와 CDN
+CDN 은 프록시 서버에서 출발한 웹 캐시의 클라우드화이다. CDN 은 서버와 사용자 사이의 물리적인 거리를 줄여 컨텐츠 로딩에 소요되는 시간을 최소화 할 수 있다. CDN 은 리버스프록시캐시를 사용하고 있고 리버스프록시의 특징을 생각해봤을때 클라이언트에서 CDN을 사용할때 원 서버에 대한 정보를 알 수가 없다. 제공하는 CDN 을통해서만 기능을 사용할 수 있는걸 알 수 있다.
+
+
+### 프록시와 VPN
+VPN 은 `가상프라이빗 네트워크로 ` 암호화를 프록시 서버와 결합하여 더 안전한 통신 채널을 만들 수 있다. 프록시와 VPN 둘다 조직의 개인 정보 보호 및 보안을 강화하고 둘다 조직의 내부 IP 주소를 익명화함  
+  
+VPN은 암호화 기능이 있기 때문에 프록시서버보다 광범위한 기능을 제공한다.
+VPN 은 승인된 트래픽만 네트워크에 들어올 수 있도록 허용
+  
+리버스프록시서버같은경우는 로드밸런서 역할을 하여 들어오는 요청을 백업 서버에 분산할 수 있지만 VPN은 로드밸런싱 기능을 제공하지 않는다.
+
+---
+
+# 참고자료
+https://aws.amazon.com/ko/compare/the-difference-between-proxy-and-vpn/  
+https://nextjs.org/docs/app/api-reference/next-config-js/rewrites  
+https://namu.wiki/w/%ED%94%84%EB%A1%9D%EC%8B%9C%20%EC%84%9C%EB%B2%84  
+https://namu.wiki/w/CDN  

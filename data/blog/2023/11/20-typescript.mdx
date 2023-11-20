@@ -1,0 +1,191 @@
+---
+title: 타입스크립트 개념 정리하기
+date: 2023.11.20
+tags: ['타입스크립트', 'Typescript', 'Utiliry Type', '제네릭', 'Index Signatures']
+draft: true
+layout: PostSimple
+summary: 타입스크립트에서 아직 헷갈리는 개념들을 정리합니다.
+---
+
+# 개요
+해당 내용 정리는 `나는 타입스크립트를 제대로 쓰고 있었는가?` 라는 질문에서부터 시작하게 되었습니다. 
+  
+
+# 조건부 유형
+```ts
+// 단순한 예제
+interface Animal {
+  live(): void;
+}
+
+interface Dog extends Animal {
+  woof(): void;
+}
+
+// Dog 의 타입이 Animal 에 있으면 number
+type Example = Dog extends Animal ? number : string;
+type Example = RegExp extends Animal ? number : string;
+```
+  
+```ts {10} showLineNumbers
+// 조건부 유형을 제네릭과 함께 사용할때
+interface IdLabel {
+    id: number
+}
+
+interface NameLabel {
+    name: string;
+}
+
+type NameOrId<T extends number | string> = T extends number ? IdLabel : NameLabel;
+
+function createLabel<T extends number | string>(value: T): NameOrId<T> {
+    throw ""
+}
+
+let a = createLabel("Typescript"); // NameLabel
+let b = createLabel(2.8); // IdLabel
+let c = createLabel(Math.random() ? "hello": 42); // IdLabel | NameLabel
+```
+
+10번째 줄 코드를 말로 풀어서 해석하면 아래와 같습니다
+>NameOrId 타입을 정의합니다 이 타입은 number 또는 string 타입만 받을 수 있고 만약 T 가 number 라면 IdLabel 타입을 반환하고 number 가 아니라면 NameLabel 타입을 반환합니다.
+
+# Awaited v4.5
+```ts
+type A = Awaited<Promise<string>>; // string
+type B = Awaited<Promise<Promise<number>>>; // number
+type C = Awaited<boolean | Promise<number>>; // number | boolean
+
+type Awaited<T> = 
+  T extends null | undefined ? 
+  T : T extends object & 
+  {
+    then(onfulfilled: infer F, ...args: infer _): any
+  } ? F extends (value: infer V, ...args: infer _) => any ? Awaited<...> : never : T;
+```
+  
+해당 유틸리티 함수는 비동기 함수에서 비동기 작업의 결과의 타입을 추출할때 사용할 수 있습니다. 어떤식으로 유틸리티가 구성되어있는지 한줄씩 보려고합니다.
+- `T extends null | undefined ? T : ...` : T 가 null 또는 undefined 타입이면 그대로 T를 반환합니다.
+- `T extends object ...` T 가 null 이나 undefined 가아닐때 T 가 object 타입이고 then 메소드를 갖고 있으면 다음을 실행합니다.
+- `F extends ...`: then 메소드의 첫번째 인자 onfulfilled 가 함수 타입이라면 해당 함수의 반환 타입을 Awaited 에 재귀적으로 적용하여 then 메소드의 반환 타입을 추출 아니라면 never 를 반환
+  
+T 가 프로미스타입일때 프로미스가 reesolve 된 값의 타입을 추출하고 아니라면 그대로 T 를 반환합니다.
+
+**infer**  
+> infer 는 타입스크립트에서 제네릭타입에서 사용되는 특별한 키워드 타입 추론을 할때 사용  
+제네릭 타입에서 타입 변수의 값을 추론하고 그 값을 다른곳에서 사용가능
+  
+4.4 및 이전 버전에서는 `Promise.all`, `Promise.race` 를 사용하여 리턴 타입을 정의했을때 오류가 발생했었습니다. 이 문제를 해결하기위해 새로운 유틸리티 타입이 추가되었고 해당 메서드의 타입을 확인해보면 Awaited 가 추가되어있는걸 확인할 수 있습니다.
+
+```ts:lib.es2015.promise.d.ts
+interface PromiseConstructor {
+  ...
+  all<T extends readonly unknown[] | []>(values: T): Promise<{ -readonly [P in keyof T]: Awaited<T[P]> }>;
+  race<T extends readonly unknown[] | []>(values: T): Promise<Awaited<T[number]>>;
+  ...
+}
+```
+
+# ReturnType v2.8
+```ts
+type ReturnType<T> = T extends (...args: any[]) => infer R ? R : any;
+```
+`ReturnType` 은 함수의 반환 유형으로 타입을 생성할 수 있습니다.
+
+```ts
+// 타입추론시 사용
+function myFunction() {
+  return 'myFunction'
+}
+// 타입스크립트에서 변수나 프로퍼티의 타입을 추론할 수 있는 typeof 연산자
+type ResultType = ReturnType<typeof myFunction>; // string
+
+// 제네릭과 함께 사용시
+function myGeneric<T>(value: T): T {
+  return value
+}
+
+type ResultType = ReturnType<typeof myGeneric> // T
+
+// 함수시그니처에서 반환 타입을 추출
+type AddFunction = (a: number, b: number) => number;
+type ResultType = ReturnType<AddFunction>; // number;
+```
+
+# Index Signatures
+키와 값 유형만 알고 있을때 알 수 없는 구조의 개체를 입력하는것
+```ts
+type MyObject = {
+  [key: string]: SomType;
+}
+
+// 예시
+type Car = {
+  brand: string;
+  model: string;
+  [key: string]: string;
+}
+
+const myCar: Car = {
+  brand: '',
+  model: '',
+  color: '',
+  year: ''
+}
+```
+인덱스 시그니처 사용할때 주의할점  
+1. 잘못된 키를 포함해 모든 키를 허용
+```ts
+type Car = {
+  [key: string]: string;
+}
+
+const car: Car = {
+  Name: '모닝' // 키 이름은 name 이어야함
+}
+```
+2. 특정 키가 필요하지 않다.
+```ts
+const car:Car = {} // 유효한 타입으로 처리됨
+```
+3. 키마다 다른 타입을 가질 수 없다.
+> 특수한 케이스를 제외하고 대부분의 키는 string 형태인것같아서 큰 단점은 아닌것같습니다. 키는 string, number, symbol 만 가능
+4. 자동완성기능이 동작하지 않음
+  
+인덱스 시그니처와 유사하게 동작하는 유틸리티 타입이 있습니다.
+```ts
+const object = Record<string, string> = {prop: "Value"}
+```
+
+## 차이점
+```ts
+interface Animal { // ❌
+  // Type Error
+  [key: 'dog' | 'cat']: string;
+}
+
+type SpecificAniaml  = Record<'dog' | 'cat', string>
+const animal: SpecificAniaml = {
+  dog: '푸들',
+  cat: '검은고양이'
+}
+```
+키를 특정 문자열로 제한하려면 `Record` 를 사용할 수 있습니다.
+
+## 인덱스 시그니처 대신 사용할 수 있는 두번째 방법
+매핑된 타입을 사용할 수 있습니다. 매핑된 타입은 키마다 별도의 타입을 사용할 수 있습니다.
+
+```ts
+type Animal = {[k in 'cat' | 'dog']: string};
+type Animal2 = {[k in 'dog' | 'cat' | 'age']: k extends 'age' ? number : string};
+```
+
+인덱스시그니처는 `런타임때까지` 객체의 속성을 알 수 없을 경우에만 사용합니다 (ex: CSV 에서 로드하는 경우)
+
+---
+
+[토스 타입스크립트 타입시스템 뜯어보기, 타입 호환성](https://toss.tech/article/typescript-type-compatibility)
+[타입스크립트에서 제네릭을 사용하는 방법](https://www.digitalocean.com/community/tutorials/how-to-use-generics-in-typescript)
+[타입스크립트 타입 챌린지](https://github.com/type-challenges/type-challenges/blob/main/README.ko.md)
+https://dmitripavlutin.com/typescript-index-signatures/

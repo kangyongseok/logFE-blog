@@ -1,0 +1,33 @@
+# <커밋타입>(<영향범위>): <한줄요약>
+##### Subject 50 characters #################
+
+
+# Body Message 상세내용작성
+######## Body 72 characters #######################################
+
+
+# Issue Tracker Number or URL (optional) ->
+# 여기에 지라티켓이나 이슈 넘버 작성
+
+# --- COMMIT END ---
+#   커밋 타입 종류
+#   feat    : 새로운 기능 추가
+#   fix     : 버그 수정
+#   build   : 빌드관련 파일 수정에 대한 커밋
+#   refactor: 코드 리팩토링
+#   style   : 코드 포맷팅, 세미콜론 누락 수정 등 내부 로직 변경이 없이 코드를 수정한 경우
+#   docs    : README 문서 수정
+#   test    : 테스트 코드, 리팩토링 테스트 코드 추가
+#   ci      : CI 관련 설정 수정에 대한 커밋
+#   remove  : 코드/파일 삭제
+#   dep     : 패키지 설치/삭제 등 의존성 관련 수정
+#   etc     : 기타
+# ------------------
+# Remember me ~
+#   Separate subject from body with a blank line
+#     본문과 제목에는 빈줄을 넣어서 구분한다.
+#   Use the body to explain what and why vs. how
+#     본문에는 "어떻게" 보다는 "왜"와 "무엇을" 설명한다.
+#   Can use multiple lines with "-" for bullet points in body
+#     본문에 목록을 나타낼때는 "-"로 시작한다.
+# ------------------

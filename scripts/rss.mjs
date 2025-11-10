@@ -3,7 +3,6 @@ import path from 'path'
 import { createRequire } from 'module'
 import GithubSlugger from 'github-slugger'
 import { escape } from 'pliny/utils/htmlEscaper.js'
-import { allBlogs } from '../.contentlayer/generated/index.mjs'
 
 // CommonJS 모듈을 ESM에서 import하기 위해 createRequire 사용
 const require = createRequire(import.meta.url)
@@ -11,6 +10,17 @@ const siteMetadata = require('../data/siteMetadata.js')
 
 // JSON 파일을 fs.readFileSync로 읽기
 const tagData = JSON.parse(readFileSync(new URL('../app/tag-data.json', import.meta.url), 'utf-8'))
+
+// Contentlayer 생성 파일을 동적 import로 로드 (assert 구문 문제 회피)
+let allBlogs
+try {
+  // 동적 import 사용 (Node.js가 자동으로 처리)
+  const contentlayerModule = await import('../.contentlayer/generated/index.mjs')
+  allBlogs = contentlayerModule.allBlogs
+} catch (error) {
+  console.error('Failed to load contentlayer generated files:', error)
+  throw error
+}
 
 const generateRssItem = (config, post) => `
   <item>
@@ -51,7 +61,7 @@ async function generateRSS(config, allBlogs, page = 'feed.xml') {
   if (publishPosts.length > 0) {
     for (const tag of Object.keys(tagData)) {
       const filteredPosts = allBlogs.filter((post) =>
-        post.tags.map((t) => GithubSlugger.slug(t)).includes(tag)
+        post.tags?.map((t) => GithubSlugger.slug(t)).includes(tag)
       )
       const rss = generateRss(config, filteredPosts, `tags/${tag}/${page}`)
       const rssPath = path.join('public', 'tags', tag)
@@ -61,8 +71,8 @@ async function generateRSS(config, allBlogs, page = 'feed.xml') {
   }
 }
 
-const rss = () => {
-  generateRSS(siteMetadata, allBlogs)
+const rss = async () => {
+  await generateRSS(siteMetadata, allBlogs)
   console.log('RSS feed generated...')
 }
 export default rss

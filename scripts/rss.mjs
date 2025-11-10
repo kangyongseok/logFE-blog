@@ -1,15 +1,13 @@
-import { writeFileSync, mkdirSync, readFileSync } from 'fs'
+import { writeFileSync, mkdirSync } from 'fs'
 import path from 'path'
-import { createRequire } from 'module'
-import GithubSlugger from 'github-slugger'
+import { slug } from 'github-slugger'
 import { escape } from 'pliny/utils/htmlEscaper.js'
+import siteMetadata from '../data/siteMetadata.js'
+import tagData from '../app/tag-data.json' with { type: 'json' }
+import { allBlogs } from '../.contentlayer/generated/index.mjs'
+import { sortPosts } from 'pliny/utils/contentlayer.js'
 
-// CommonJS 모듈을 ESM에서 import하기 위해 createRequire 사용
-const require = createRequire(import.meta.url)
-const siteMetadata = require('../data/siteMetadata.js')
-
-// JSON 파일을 fs.readFileSync로 읽기
-const tagData = JSON.parse(readFileSync(new URL('../app/tag-data.json', import.meta.url), 'utf-8'))
+const outputFolder = process.env.EXPORT ? 'out' : 'public'
 
 const generateRssItem = (config, post) => `
   <item>
@@ -43,48 +41,23 @@ async function generateRSS(config, allBlogs, page = 'feed.xml') {
   const publishPosts = allBlogs.filter((post) => post.draft !== true)
   // RSS for blog post
   if (publishPosts.length > 0) {
-    const rss = generateRss(config, publishPosts)
-    writeFileSync(`./public/${page}`, rss)
+    const rss = generateRss(config, sortPosts(publishPosts))
+    writeFileSync(`./${outputFolder}/${page}`, rss)
   }
 
   if (publishPosts.length > 0) {
     for (const tag of Object.keys(tagData)) {
-      const filteredPosts = allBlogs.filter((post) =>
-        post.tags?.map((t) => GithubSlugger.slug(t)).includes(tag)
-      )
+      const filteredPosts = allBlogs.filter((post) => post.tags.map((t) => slug(t)).includes(tag))
       const rss = generateRss(config, filteredPosts, `tags/${tag}/${page}`)
-      const rssPath = path.join('public', 'tags', tag)
+      const rssPath = path.join(outputFolder, 'tags', tag)
       mkdirSync(rssPath, { recursive: true })
       writeFileSync(path.join(rssPath, page), rss)
     }
   }
 }
 
-// Contentlayer 생성 파일을 로드하는 함수 (top-level await 제거)
-async function loadAllBlogs() {
-  try {
-    // 동적 import 사용
-    const contentlayerModule = await import('../.contentlayer/generated/index.mjs')
-    return contentlayerModule.allBlogs
-  } catch (error) {
-    // Fallback: createRequire 사용 (Vercel 환경 대응)
-    try {
-      const require = createRequire(import.meta.url)
-      const contentlayerModule = require('../.contentlayer/generated/index.mjs')
-      return contentlayerModule.allBlogs
-    } catch (fallbackError) {
-      console.error('Failed to load contentlayer generated files:', error)
-      console.error('Fallback also failed:', fallbackError)
-      throw new Error(
-        `Cannot load contentlayer files. Make sure 'next build' completed successfully. Original error: ${error.message}`
-      )
-    }
-  }
-}
-
-const rss = async () => {
-  const allBlogs = await loadAllBlogs()
-  await generateRSS(siteMetadata, allBlogs)
+const rss = () => {
+  generateRSS(siteMetadata, allBlogs)
   console.log('RSS feed generated...')
 }
 export default rss

@@ -1,10 +1,16 @@
-import { writeFileSync, mkdirSync } from 'fs'
+import { writeFileSync, mkdirSync, readFileSync } from 'fs'
 import path from 'path'
+import { createRequire } from 'module'
 import GithubSlugger from 'github-slugger'
 import { escape } from 'pliny/utils/htmlEscaper.js'
-import siteMetadata from '../data/siteMetadata.js'
-import tagData from '../app/tag-data.json' assert { type: 'json' }
 import { allBlogs } from '../.contentlayer/generated/index.mjs'
+
+// CommonJS 모듈을 ESM에서 import하기 위해 createRequire 사용
+const require = createRequire(import.meta.url)
+const siteMetadata = require('../data/siteMetadata.js')
+
+// JSON 파일을 fs.readFileSync로 읽기
+const tagData = JSON.parse(readFileSync(new URL('../app/tag-data.json', import.meta.url), 'utf-8'))
 
 const generateRssItem = (config, post) => `
   <item>

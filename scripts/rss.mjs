@@ -11,17 +11,6 @@ const siteMetadata = require('../data/siteMetadata.js')
 // JSON 파일을 fs.readFileSync로 읽기
 const tagData = JSON.parse(readFileSync(new URL('../app/tag-data.json', import.meta.url), 'utf-8'))
 
-// Contentlayer 생성 파일을 동적 import로 로드 (assert 구문 문제 회피)
-let allBlogs
-try {
-  // 동적 import 사용 (Node.js가 자동으로 처리)
-  const contentlayerModule = await import('../.contentlayer/generated/index.mjs')
-  allBlogs = contentlayerModule.allBlogs
-} catch (error) {
-  console.error('Failed to load contentlayer generated files:', error)
-  throw error
-}
-
 const generateRssItem = (config, post) => `
   <item>
     <guid>${config.siteUrl}/blog/${post.slug}</guid>
@@ -71,7 +60,30 @@ async function generateRSS(config, allBlogs, page = 'feed.xml') {
   }
 }
 
+// Contentlayer 생성 파일을 로드하는 함수 (top-level await 제거)
+async function loadAllBlogs() {
+  try {
+    // 동적 import 사용
+    const contentlayerModule = await import('../.contentlayer/generated/index.mjs')
+    return contentlayerModule.allBlogs
+  } catch (error) {
+    // Fallback: createRequire 사용 (Vercel 환경 대응)
+    try {
+      const require = createRequire(import.meta.url)
+      const contentlayerModule = require('../.contentlayer/generated/index.mjs')
+      return contentlayerModule.allBlogs
+    } catch (fallbackError) {
+      console.error('Failed to load contentlayer generated files:', error)
+      console.error('Fallback also failed:', fallbackError)
+      throw new Error(
+        `Cannot load contentlayer files. Make sure 'next build' completed successfully. Original error: ${error.message}`
+      )
+    }
+  }
+}
+
 const rss = async () => {
+  const allBlogs = await loadAllBlogs()
   await generateRSS(siteMetadata, allBlogs)
   console.log('RSS feed generated...')
 }

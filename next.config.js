@@ -85,7 +85,7 @@ module.exports = () => {
           hostname: 'picsum.photos',
         },
       ],
-      unoptimized,
+      unoptimized: true, // 환경 변수 대신 직접 true 설정
     },
     async headers() {
       return [

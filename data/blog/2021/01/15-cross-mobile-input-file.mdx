@@ -5,6 +5,7 @@ tags: ['mobile', 'issue', 'kakao browser']
 draft: false
 summary: 다양한 기기와 기기내의 브라우저 환경으로 발생한 이슈 처리 내용 정리
 layout: PostSimple
+canonicalUrl: https://log-fe-blog.vercel.app/blog/2021/01/15-cross-mobile-input-file
 ---
 
 <TOCInline toc={props.toc} toHeading={2} />
@@ -44,7 +45,7 @@ IOS 에서는 사진첨부기능이 의도한대로 카메라와 갤러리접근
 
 서비스 사용자들을 확인한결과 9이상의 버전을 사용중이었기에 기기 버전 이슈는 따로 고민하지 않아도 되었습니다.
 
-문제는 카카오브라우저에서는 버전과 관계없이 무조건 카메라와 폴더가 선택사항으로 나타났습니다. 원하는방향을 갤러리에 바로 접근 할 수 있도록 노출되는 것이었습니다.
+문제는 카카오브라우저에서는 버전과 관계없이 무조건 카메라와 폴더가 선택사항으로 나타났습니다. 원하는방향은 갤러리에 바로 접근 할 수 있도록 노출되는 것이었습니다.
 
 카카오브라우저를 제외한 다른 브라우저에서는 별다른 처리가 없어도 의도한대로 카메라와 갤러리를 선택할 수 있도록 노출 되었지만 카카오브라우저에서는 여러가지 속성을 활용해서 테스트해 보았지만 아무것도 해결책이 되지 못했습니다. [capture 속성 테스트](https://addpipe.com/html-media-capture-demo/)
 

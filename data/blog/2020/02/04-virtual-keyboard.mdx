@@ -5,25 +5,31 @@ tags: ['vue', 'npm', 'virtual-keyboard']
 draft: false
 summary: 키오스크에 적용하려고 만들었던 심플 버츄얼 키보드 배포 경험내용 정리입니다.
 layout: PostSimple
+canonicalUrl: https://log-fe-blog.vercel.app/blog/2020/02/04-virtual-keyboard
 ---
 
 <TOCInline toc={props.toc} toHeading={2} />
 
 ## 키오스크 어플리케이션 제작
+
 2020년이 시작되면서 새롭게 맡았던 프로젝트가 키오스크의 제작이었다.  
 스택은 Vue + Electron 으로 제작하게되었다.  
-간단하고 빠르게 개발하고 유지보수 하기엔 기존프로젝트에서 쓰던 React 보다는 Vue.js 가 적합하다고 생각했다.  
-  
+간단하고 빠르게 개발하고 유지보수 하기엔 기존프로젝트에서 쓰던 React 보다는 Vue.js 가 적합하다고 생각했다.
+
 ## 가상 키보드가 필요
-키오스크에서 태블릿모드로 사용시 input 에 포커스시 자동으로 window 의 내장 가상키보드가 노출되는데 데스크탑 모드로 사용될 예정이라 별도의 가상키보드를 띠워줄 필요성이 있었다.  
-  
+
+키오스크에서 태블릿모드로 사용시 input 에 포커스시 자동으로 window 의 내장 가상키보드가 노출되는데 데스크탑 모드로 사용될 예정이라 별도의 가상키보드를 띠워줄 필요성이 있었다.
+
 ## 패키지를 사용하자
+
 요청 접수를 받기위한 하나의 기능만 있기때문에 가볍고 빠르게 제작할거라 기존에 있던 패키지를 찾아서 활용하려고 했었다. 한글 지원이 필요했는데 자음과 모음이 분리되는 이슈가 있어서 활용할 수 없었다.
 
 ## 그럼 그냥 직접 만들자
+
 우선 한글 자모음 분리부터 해결할 필요가 있었는데 [hangul.js](https://github.com/e-/Hangul.js/) 라는 라이브러리를 활용하기로 했다.
 
 ## Setting
+
 배포를 위한 환경설정은 블로그를 참고했었는데 포스팅을 옮기는 지금 시점에 해당 글은 더이상 존재하지 않는 글이 되었다.  
 아무튼 블로그를 참고해서 npm 패키지 배포환경을 설정하고 네이밍은 [`vue-virtual-keyboard-ko`](https://www.npmjs.com/package/vue-virtual-keyboard-ko) 라고 지었다.
 
@@ -82,7 +88,7 @@ export default ({
   email
 })
 ```
-  
+
 우선 키보드에 표시할 키 내용들을 배열데이터로 만들어두었다.
 지금보니 숫자키보드 값 부분은 중복되는 부분이니 별도로 변수로 뺴서 만들어두었어도 됬을것같다.
 
@@ -90,6 +96,7 @@ export default ({
 import KeyData from './keyData'
 import Hangul from 'hangul-js'
 ```
+
 한글 자음과 모음을 합치고 분리해주는 라이브러리와 키보드 데이터를 import 하고
 
 ```js
@@ -112,12 +119,13 @@ import Hangul from 'hangul-js'
     </div>
 </template>
 ```
+
 UI 를 담당할 template 코드도 작성한다.
 
 ```js
 <div v-for="(keyLine, index) in KeyData[lang]" :key="index" />
 ```
-  
+
 이 태그의 역할은 import 한 keyData 를 가져와 v-for 로 반복을 도는데 KeyData[lang] 를 해준이유는 한영키를 눌렀을때 한글 \<==> 영어를 동적으로 보여주기 위해서다. :key="index" 는 v-for 문을 작성하게되면 반드시 함께 포함되어야하는 속성이다.
 
 ```js
@@ -129,6 +137,7 @@ UI 를 담당할 template 코드도 작성한다.
     @click="() => keyEvent(key[shiftIndex])"
   />
 ```
+
 div 에서 반복문으로 돌려 라인별로 데이터를 반복하고 그 안에있는 진짜 키보드가 li 태그에 담겨진다.  
 v-bind:class 는 특수키들이 가질 동적 클래스명이된다.
 
@@ -136,6 +145,7 @@ v-bind:class 는 특수키들이 가질 동적 클래스명이된다.
 <span class="keyInfo" v-if="key[shiftIndex] === 'space'"> </span>
 <span class="keyInfo" v-else></span>
 ```
+
 첫번째 span 은 space 일때 키보드에 아무표시도 하지않고 나머지 span은 키보드에 keyData의 데이터들을 표시하겠다는 조건부 코드이다.
 
 ```js
@@ -150,6 +160,7 @@ data () {
   }
 },
 ```
+
 - KeyData: import 한 key data
 - shiftIndex: shift 키의 on/off 값
 - capsLock: capsLock 키의 on/off 값
@@ -158,6 +169,7 @@ data () {
 - keyValue: keyArr 을 hangulejs 로 변환하여 리턴해줄 값
 
 **methods**
+
 ```js
 classObject (key) {
     switch (key) {
@@ -187,6 +199,7 @@ classObject (key) {
 
 각각의 해당하는 특수키의 class명을 리턴한다.
 각각 키의 넓이 값을 별도로 갖게 되는데에 쓰인다.
+
 ```js
 async keyEvent (key) {
     switch (key) {
@@ -216,6 +229,7 @@ async keyEvent (key) {
     }
   },
 ```
+
 특수키에따른 이벤트를 발생시키거나 data() 에 가진 값들에 변화를 준다.
 
 ```js
@@ -225,6 +239,7 @@ default:
     await this.$emit('getKeyValue', this.keyValue)
     break
 ```
+
 위의코드가 핵심인데 빈 배열에 특수키를 제외한 일반 키값들은 배열로 push 해주고
 Hangul.assemble(Arr) 을 통해서 배열로되어있는 자음 모음의 값을을 한글이되도록 합쳐준다.
 
@@ -235,26 +250,29 @@ async delete () {
   await this.$emit('getKeyValue', this.keyValue)
 }
 ```
+
 BackSpace 버튼을 클릭했을때 배열에서 마지막값만 제거하고 나머지 배열을 Hangul.assemble(Arr) 로 다시 한글로 합쳐주고 값을 부모에게 리턴해준다.
 
-
 ## 추가 정리
+
 - Shift 와 CapsLock이 현재 같은 동작을 하게 되어있는데 이 부분이 수정되어야한다.
 - Shift 는 다른키를 입력시 다시 풀려야하고 쌍자음은 Shift 일때만 나와야한다.
 - CapsLock 는 영문의 대소문자를 누를수 있게 하는 키이고 다시 CapsLock을 누르기전까지는 풀리지 않아야한다.
 - 추가로 테마를 설정할 수 있도록 할 예정이다.
-  
+
 아직 완전한 기능도하고 베타버전으로 npm 에 퍼블리싱한 상태이다. 자잘한것들을 수정하고 다시 올리고 하다보니 버전은 벌써 `v0.1.9` 이다. 다운로드수도 그냥 아무 생각도 없었는데 `2020/02/04(화)` 기준으로 `219번`의 다운로드가 발생하였다.
-  
+
 kiosk를 염두해두고 만들었다보니 기존의 라이브러리들도있고 수요가 이렇게 있을지는 몰랐는데 그냥 테스트한다고 대충 올렸던 버전을 받았던 사람들에게 좀 미안해진다.
-  
+
 애초에 심플하게만 사용하려고 만들려고했던거라 Shift / CapsLock / Theme 등의 기능을 추가하고 더이상의 기능추가는 하지않을생각이다. 이슈나 따로 요청이 들어온다면 그건 그때가서 생각해볼일이지만 아마 git 에서 clone 하여 커스텀 하는쪽이 더 빠를지 싶다.
-  
+
 처음으로 npm 에 컴포넌트를 publish 해봤는데 이거 은근 재미있는 경험이다.
 
 ## Result
+
 - [npm vue-virtual-keyboard-ko](https://www.npmjs.com/package/vue-virtual-keyboard-ko)
 - [git repo](https://github.com/kangyongseok/vue-virtual-keyboard-ko)
 
 ## 참고자료
+
 - [hangul.js](https://github.com/e-/Hangul.js/)

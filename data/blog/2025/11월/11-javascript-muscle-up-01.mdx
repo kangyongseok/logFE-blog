@@ -1,0 +1,400 @@
+---
+title: 프레임워크 없이 사고하기
+subtitle: JavaScript Muscle Up 01
+date: 2025.11.11
+tags: ['JavaScript', 'Muscle Up']
+draft: false
+layout: PostSimple
+summary: JavaScript Muscle Up 01 - 프레임워크 없이 사고하기
+series: 'JavaScript Muscle Up 시리즈'
+seriesOrder: 1
+canonicalUrl: https://log-fe-blog.vercel.app/blog/2025/11/11-javascript-muscle-up-01
+---
+
+```text
+리액트와 넥스트 사이에서 몇 년을 뛰다 보니
+어느 순간부터 ‘생각’을 리액트 문법 안에서 하게 됐다.
+
+상태를 관리하는 것도, 데이터를 흘려보내는 것도,
+심지어 함수를 짜는 것도 JS의 문법이 아니라 React의 규칙으로 사고하고 있었다.
+
+그러다 문득 “이거, 자바스크립트로는 설명이 안 되는 사고방식 아닌가?” 하는 의문이 들었다.
+그리고 깨달았다.
+내가 자바스크립트를 ‘쓴다’는 감각을 잃어버리고 있었다는 걸.
+```
+
+## 시리즈 목록
+
+    1.	프레임워크 없이 사고하기 📌
+    2.	[값과 참조, 불변성](https://log-fe-blog.vercel.app/blog/2025/11/11-javascript-muscle-up-02)
+    3.	스코프와 클로저
+    4.	비동기와 이벤트 루프
+    5.	this와 바인딩
+    6.	프로토타입 이해
+    7.	브라우저 런타임과 이벤트
+    8.	모듈과 실행환경
+    9.	함수형 사고 연습
+    10.	결국은 자바스크립트로 사고하기
+
+---
+
+# 순수 JS 로 useState, useSignal 구현하기
+
+```tsx
+const [count, setCount] = useState(0)
+```
+
+상태관리의 원리는 간단합니다. 상태가 변경되면 화면을 다시 그려준다.  
+그 기본에 맞춰서 위 코드가 동작 될 수 있도록 구현해보겠습니다.
+
+```tsx:index.js showLineNumberss
+function createUseState() {
+  let state;
+
+  function useState(initialValue) {
+    if (state === undefined) {
+      state = initialValue;
+      console.log('초기화:', state);
+    }
+
+    const setState = newValue => {
+      state = newValue;
+      console.log('setState:', state);
+      Component();
+    };
+
+    return [state, setState];
+  }
+
+  return useState;
+}
+
+const useState = createUseState();
+
+function Component() {
+  const [count, setCount] = useState(0);
+  const app = document.querySelector('#app');
+  app.innerHTML = `
+    <h1>Count: ${count}</h1>
+    <button id="inc">+</button>
+    <button id="dec">-</button>
+  `;
+
+  document.querySelector('#inc').onclick = () => setCount(count + 1);
+  document.querySelector('#dec').onclick = () => setCount(count - 1);
+}
+
+Component();
+```
+
+> 클로저: 함수가 선언될 당시의 렉시컬 환경을 기억하는것
+
+카운트가 잘 변경되는걸 확인가능합니다.
+
+그러나 여기에는 두가지 문제점을 갖고 있습니다.
+
+1. 상태를 여러개 관리할 수 없다.
+2. input 에 사용할경우 포커스를 잃어버림
+
+위 예제는 단일상태관리 버전이고 실제로는 여러개의 상태들이 존재할 수 있기 때문에 해당 코드로는 한계가 있습니다.
+
+### 다중 상태관리 버전
+
+```tsx:index.js showLineNumberss
+function createReact() {
+  let hooks = [];
+  let currentIndex = 0;
+
+  function useState(initialValue) {
+    const index = currentIndex;
+
+    if (hooks[index] === undefined) {
+      hooks[index] = initialValue;
+      console.log(`useState[${index}] 초기화:`, initialValue);
+    }
+
+    const setState = newValue => {
+      hooks[index] =
+        typeof newValue === "function" ? newValue(hooks[index]) : newValue;
+      console.log(`setState[${index}]:`, hooks[index]);
+      React.renderComponent(Component);
+    };
+
+    currentIndex++;
+    return [hooks[index], setState];
+  }
+
+  function renderComponent(componentFn) {
+    // 🧠 렌더 전 포커스와 커서 위치 기억
+    const active = document.activeElement;
+    const activeId = active?.id;
+    let cursorPos = null;
+
+    if (
+      active &&
+      (active.tagName === "INPUT" || active.tagName === "TEXTAREA") &&
+      typeof active.selectionStart === "number"
+    ) {
+      cursorPos = active.selectionStart;
+    }
+
+    // 렌더 실행
+    currentIndex = 0;
+    componentFn();
+
+    // 렌더 후 포커스 및 커서 복원
+    if (activeId) {
+      const el = document.getElementById(activeId);
+      if (el) {
+        el.focus();
+        if (
+          cursorPos !== null &&
+          (el.tagName === "INPUT" || el.tagName === "TEXTAREA") &&
+          typeof el.setSelectionRange === "function"
+        ) {
+          el.setSelectionRange(cursorPos, cursorPos);
+        }
+      }
+    }
+  }
+
+  return { useState, renderComponent };
+}
+
+const React = createReact();
+
+function Component() {
+  const [count, setCount] = React.useState(0);
+  const [name, setName] = React.useState("형님");
+
+  const app = document.querySelector("#app");
+  app.innerHTML = `
+    <h1>Count: ${count}</h1>
+    <h2>Name: ${name}</h2>
+    <button id="inc">+</button>
+    <button id="dec">-</button>
+    <input id="input" type="text" value="${name}" />
+  `;
+
+  document.querySelector("#inc").onclick = () => setCount(count + 1);
+  document.querySelector("#dec").onclick = () => setCount(count - 1);
+  document.querySelector("#input").oninput = e => setName(e.target.value);
+}
+
+React.renderComponent(Component);
+```
+
+여러개의 상태 관리를 하기위해서 `let hooks = [];` 배열을 추가했고  
+`currentIndex` 로 상태관리의 인덱스 값을 관리합니다.  
+input 같은경우 상태가 변경될때마다 포커스를 잃어버려 매번 다시 포커싱을 해줘야하고  
+포커싱을 주더라도 입력되던 커서의 위치도 잃어버리기 때문에 포커스와 커서의 위치를 복원해주기 위한 코드를 추가했습니다.
+
+리액트에서는 `Virtual DOM` 을 사용하기 때문에 돔을 실제로 재생성하는것이 아니라 필요한 속성만 업데이트시켜 이런 복원 로직은 내부적으로 처리됩니다.
+
+리액트의 상태관리는 부모에서 상태 변경이 있을경우 자식 요소까지 모두 다시 렌더링 되는 특징이 있습니다.  
+그로인해 불필요한 렌더링이 발생하면서 사용성을 저해하는 문제들이 발생합니다.  
+이 상태관리의 최적화를 위해서 우리는 여러가지 훅들을 복합적으로 사용해야하고 컴포넌트의 구조 또한 많은 고민과 최적화가 필요하게 됩니다.
+
+그래서 리액트가 갖는 단점을 보완하면서 나온 라이브러리들이 `Preact, Solid, Qwik` 등이 있습니다.  
+이 라이브러리들은 `Signal` 을 사용해서 상태 관리를 합니다.  
+해당 라이브러리들은 가상돔을 쓰지않고 실제 돔을 조작하고 상태관리 또한 관련이있는 돔만 변경하기때문에 렌더링 최적화에 대한 신경을 최소화 할 수 있습니다.  
+번들 사이즈또한 더 작고, 가상돔으로 인한 오버헤드를 줄일 수 있습니다.
+
+그럼 이 Signal 을 순수 JS 로 구현해보겠습니다.
+
+```tsx:index.js showLineNumberss
+function useSginal(initialValue) {
+  let value = initialValue
+  const subscribers = new Set() // 값을 읽은 DOM 노드들을 저장
+
+  const get = () => {
+    if (currentBinding) {
+      subscribers.add(currentBinding)
+    }
+    return value
+  }
+
+  const set = (newValue) => {
+    if (value ==== newValue) return;
+    value = newValue;
+    subscribers.forEach((update) => update(value))
+  }
+
+  return {get, set}
+}
+
+let currentBinding = null // 현재 어떤 DOM 을 바인딩 중인지
+
+function bindText(el, signal, formatter = (v) => v) {
+  const update = (value) => {
+    el.textContent = formatter(value)
+  }
+  currentBinding = update;
+  update(signal.get())
+  currentBinding = null;
+}
+
+// input과 signal을 양방향으로 연결하는 헬퍼
+function bindInput(el, signal) {
+  const update = (value) => {
+    el.value = value;
+  };
+  currentBinding = update;
+  update(signal.get()); // 초기값 렌더
+  currentBinding = null;
+
+  el.addEventListener("input", (e) => signal.set(e.target.value));
+}
+
+const count = useSignal(0); // 초기값 시그널 생성
+const name = useSignal("형님"); // 초기값 시그널 생성
+
+const app = document.querySelector("#app");
+app.innerHTML = `
+  <h1 id="count"></h1>
+  <h2 id="name"></h2>
+  <button id="inc">+</button>
+  <button id="dec">-</button>
+  <input id="input" type="text" />
+`;
+
+// 바인딩 연결
+bindText(document.querySelector("#count"), count, (v) => `Count: ${v}`);
+bindText(document.querySelector("#name"), name, (v) => `Name: ${v}`);
+bindInput(document.querySelector("#input"), name);
+
+// 이벤트
+document.querySelector("#inc").onclick = () => count.set(count.get() + 1);
+document.querySelector("#dec").onclick = () => count.set(count.get() - 1);
+```
+
+마지막으로 Proxy 기반 상태관리 코드를 구현해보겠습니다.
+
+```tsx:index.js showLineNumberss
+// ---------------------------
+// 🧩 Proxy 기반 상태 관리 샘플
+// ---------------------------
+
+// 구독자(reactive effect) 저장소
+const subscribers = new Set();
+
+// 상태 생성
+function createStore(initialState) {
+  const state = new Proxy(initialState, {
+    get(target, key) {
+      return target[key];
+    },
+    set(target, key, value) {
+      if (target[key] !== value) {
+        target[key] = value;
+        // 모든 구독자에게 상태 변경 알림
+        subscribers.forEach(fn => fn());
+      }
+      return true;
+    },
+  });
+
+  return state;
+}
+
+// effect 등록
+function autorun(fn) {
+  subscribers.add(fn);
+  fn(); // 최초 1회 실행
+}
+
+// ---------------------------
+// 🧱 Example
+// ---------------------------
+const state = createStore({
+  count: 0,
+  name: "홍길동",
+});
+
+// DOM 렌더 함수
+autorun(() => {
+  document.body.innerHTML = `
+    <h1>Count: ${state.count}</h1>
+    <h2>Name: ${state.name}</h2>
+    <button id="inc">+</button>
+    <button id="dec">-</button>
+    <input id="input" value="${state.name}" />
+  `;
+
+  document.getElementById("inc").onclick = () => state.count++;
+  document.getElementById("dec").onclick = () => state.count--;
+  document.getElementById("input").oninput = (e) => (state.name = e.target.value);
+});
+```
+
+이것도 코드를 잘 보면 전체 돔을 리렌더링 하는 형식입니다.  
+변경할 값이 있는 부분 돔 업데이트 버전으로 코드를 수정해보겠습니다.
+
+```tsx:index.js showLineNumberss
+// ---------------------------
+// 🧩 Proxy + 부분 DOM 업데이트 버전
+// ---------------------------
+
+const subscribers = new Map(); // key별 구독자
+
+function createStore(initialState) {
+  return new Proxy(initialState, {
+    get(target, key) {
+      return target[key];
+    },
+    set(target, key, value) {
+      if (target[key] !== value) {
+        target[key] = value;
+        // 해당 key만 업데이트
+        if (subscribers.has(key)) {
+          subscribers.get(key).forEach(fn => fn(value));
+        }
+      }
+      return true;
+    },
+  });
+}
+
+// 특정 속성에 대한 구독 등록
+function watch(key, fn) {
+  if (!subscribers.has(key)) subscribers.set(key, new Set());
+  subscribers.get(key).add(fn);
+  fn(state[key]); // 초기 렌더
+}
+
+// ---------------------------
+// 🧱 Example
+// ---------------------------
+const state = createStore({
+  count: 0,
+  name: "형님",
+});
+
+// HTML 구성 (초기 1회만 렌더)
+document.body.innerHTML = `
+  <div>
+    <h1 id="count"></h1>
+    <h2 id="name"></h2>
+    <button id="inc">+</button>
+    <button id="dec">-</button>
+    <input id="input" />
+  </div>
+`;
+
+// 부분 업데이트 연결
+watch("count", (value) => {
+  document.getElementById("count").textContent = `Count: ${value}`;
+});
+
+watch("name", (value) => {
+  document.getElementById("name").textContent = `Name: ${value}`;
+  document.getElementById("input").value = value;
+});
+
+// 이벤트 핸들러 (상태 변경)
+document.getElementById("inc").onclick = () => state.count++;
+document.getElementById("dec").onclick = () => state.count--;
+document.getElementById("input").oninput = (e) => (state.name = e.target.value);
+```
+
+이렇게 코드를 수정하면 변경할 값이 있는 부분 돔만 업데이트 됩니다.

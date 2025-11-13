@@ -99,6 +99,7 @@ export const Blog = defineDocumentType(() => ({
   contentType: 'mdx',
   fields: {
     title: { type: 'string', required: true },
+    subtitle: { type: 'string' }, // subtitle 필드 추가
     date: { type: 'date', required: true },
     tags: { type: 'list', of: { type: 'string' }, default: [] },
     lastmod: { type: 'date' },
@@ -109,6 +110,8 @@ export const Blog = defineDocumentType(() => ({
     layout: { type: 'string' },
     bibliography: { type: 'string' },
     canonicalUrl: { type: 'string' },
+    series: { type: 'string' }, // 시리즈 이름 추가
+    seriesOrder: { type: 'number' }, // 시리즈 내 순서 (선택사항)
   },
   computedFields: {
     ...computedFields,

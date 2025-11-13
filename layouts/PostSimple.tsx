@@ -17,7 +17,7 @@ interface LayoutProps {
 }
 
 export default function PostLayout({ content, next, prev, children }: LayoutProps) {
-  const { path, slug, date, title } = content
+  const { path, slug, date, title, subtitle } = content
 
   return (
     <SectionContainer>
@@ -36,6 +36,9 @@ export default function PostLayout({ content, next, prev, children }: LayoutProp
               </dl>
               <div>
                 <PageTitle>{title}</PageTitle>
+                {subtitle && (
+                  <p className="mt-2 text-lg text-gray-500 dark:text-gray-400">{subtitle}</p>
+                )}
               </div>
             </div>
           </header>

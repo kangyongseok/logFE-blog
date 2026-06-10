@@ -1,0 +1,82 @@
+{
+  "http://github.com": {
+    "url": "http://github.com",
+    "title": "GitHub · Change is constant. GitHub keeps you ahead.",
+    "description": "Join the world's most widely adopted, AI-powered developer platform where millions of developers, businesses, and the largest open source community build software that advances humanity.",
+    "image": "https://images.ctfassets.net/8aevphvgewt8/4pe4eOtUJ0ARpZRE4fNekf/f52b1f9c52f059a33170229883731ed0/GH-Homepage-Universe-img.png",
+    "siteName": "GitHub",
+    "favicon": "https://github.com/fluidicon.png"
+  },
+  "https://github.com/type-challenges/type-challenges/blob/main/README.ko.md": {
+    "url": "https://github.com/type-challenges/type-challenges/blob/main/README.ko.md",
+    "title": "type-challenges/README.ko.md at main · type-challenges/type-challenges",
+    "description": "Collection of TypeScript type challenges with online judge - type-challenges/type-challenges",
+    "image": "https://repository-images.githubusercontent.com/281975310/f692e100-2839-11eb-95f3-fa53305aa760",
+    "siteName": "GitHub",
+    "favicon": "https://github.com/fluidicon.png"
+  },
+  "https://github.com/vercel/next.js/issues/34559": {
+    "url": "https://github.com/vercel/next.js/issues/34559",
+    "title": "Tree-shaking fails for different imports from the same file across multiple routes · Issue #34559 · vercel/next.js",
+    "description": "Verify canary release I verified that the issue exists in Next.js canary release Provide environment information > next info /bin/sh: pnpm: command not found Operating System: Platform: darwin Arch...",
+    "image": "https://opengraph.githubassets.com/78c9405732dcb192a47d308b009d1ffcf3c6f6d1490aa307fafb2f6d23b9b08f/vercel/next.js/issues/34559",
+    "siteName": "GitHub",
+    "favicon": "https://github.com/fluidicon.png"
+  },
+  "https://googlechrome.github.io/lighthouse/scorecalc/#FCP=3141&SI=14048&FMP=9174&TTI=17000&FCI=6500&LCP=26169&TBT=2513&CLS=0.07&device=mobile&version=10&version=8&version=6&version=5": {
+    "url": "https://googlechrome.github.io/lighthouse/scorecalc/#FCP=3141&SI=14048&FMP=9174&TTI=17000&FCI=6500&LCP=26169&TBT=2513&CLS=0.07&device=mobile&version=10&version=8&version=6&version=5",
+    "title": "Lighthouse Scoring calculator",
+    "siteName": "googlechrome.github.io",
+    "favicon": "https://googlechrome.github.io/favicon.ico"
+  },
+  "https://junghan92.medium.com/%EB%B2%88%EC%97%AD-create-react-app-%EA%B6%8C%EC%9E%A5%EC%9D%84-vite%EB%A1%9C-%EB%8C%80%EC%B2%B4-pr-%EB%8C%80%ED%95%9C-dan-abramov%EC%9D%98-%EB%8B%B5%EB%B3%80-3050b5678ac8": {
+    "url": "https://junghan92.medium.com/%EB%B2%88%EC%97%AD-create-react-app-%EA%B6%8C%EC%9E%A5%EC%9D%84-vite%EB%A1%9C-%EB%8C%80%EC%B2%B4-pr-%EB%8C%80%ED%95%9C-dan-abramov%EC%9D%98-%EB%8B%B5%EB%B3%80-3050b5678ac8",
+    "title": "(번역) ‘Create React App 권장을 Vite로 대체’ PR 대한 Dan Abramov의 답변",
+    "failed": true
+  },
+  "https://so-so.dev/web/tree-shaking-module-system/": {
+    "url": "https://so-so.dev/web/tree-shaking-module-system/",
+    "title": "Tree Shaking과 Module System",
+    "description": "들어가며 어플리케이션은 개발자가 직접 작성한 코드, 외부 라이브러리 등 다양한 코드조각들로 이루어져 있습니다.  어플리케이션이 복잡해질수록 번들 사이즈에 신경을 쓰게 되는데요, 이때 필요한 코드만 남기기 위한 작업, 흔히 Tree Shaking이라고 불리는 과정이 수반되어야 합니다. 이 글에서는 Tree Shaking에 대한 기본 개념과 Tree Shaking을 보장하기 위한 요소들에 대해 알아봅니다. Tree Shaking이란? 우리가 흔히 명명하는 Tree Shaking…",
+    "image": "https://so-so.dev/static/0c3046dcd5904b15e433be5d4517e7a6/14b42/thumbnail.jpg",
+    "siteName": "so-so.dev",
+    "favicon": "https://so-so.dev/favicon-32x32.png?v=94575be6e89ca1ae1da4180e8a9e4e2b"
+  },
+  "https://toss.tech/article/typescript-type-compatibility": {
+    "url": "https://toss.tech/article/typescript-type-compatibility",
+    "title": "TypeScript 타입 시스템 뜯어보기: 타입 호환성",
+    "description": "타입호환성은 무엇이며 왜 필요할까요? 타입호환이 지원되지 않는 경우가 존재한다는 것을 아셨나요? 평소 익숙했던 개념들에 대해 질문을 던져가며 TypeScript 타입 시스템에 관해 심도있게 알아보고자 합니다.",
+    "image": "https://og.toss.tech/?title=TypeScript%0D%0A%ED%83%80%EC%9E%85%20%EC%8B%9C%EC%8A%A4%ED%85%9C%20%EB%9C%AF%EC%96%B4%EB%B3%B4%EA%B8%B0%3A%0D%0A%ED%83%80%EC%9E%85%20%ED%98%B8%ED%99%98%EC%84%B1&imageUrl=https%3A%2F%2Fstatic.toss.im%2Fassets%2Ftoss-tech%2Ftech-article-ts-og.png&v=2",
+    "siteName": "토스 기술 블로그, 토스 테크",
+    "favicon": "https://static.toss.im/tds/favicon/favicon.ico"
+  },
+  "https://unsplash.com/s/photos/canada?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText": {
+    "url": "https://unsplash.com/s/photos/canada?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText",
+    "title": "Unsplash",
+    "failed": true
+  },
+  "https://web.dev/vitals/": {
+    "url": "https://web.dev/vitals/",
+    "title": "Web Vitals  |  Articles  |  web.dev",
+    "description": "Essential metrics for a healthy site",
+    "image": "https://web.dev/static/articles/vitals/image/thumbnail.png",
+    "siteName": "web.dev",
+    "favicon": "https://www.gstatic.com/devrel-devsite/prod/vab7d3990237361b4739a5005ec80b0af3ee973650a028ed684c6b12bd1dc988a/web/images/favicon.png"
+  },
+  "https://www.digitalocean.com/community/tutorials/how-to-use-generics-in-typescript": {
+    "url": "https://www.digitalocean.com/community/tutorials/how-to-use-generics-in-typescript",
+    "title": "How To Use Generics in TypeScript | DigitalOcean",
+    "description": "Generics are a fundamental feature of statically-typed languages, allowing developers to pass types as parameters to a type, function, or other structure. Ty…",
+    "image": "https://community-cdn-digitalocean-com.global.ssl.fastly.net/LeZ2kTKiWbPZVtSvFD2YELwy",
+    "siteName": "digitalocean.com",
+    "favicon": "https://www.digitalocean.com/_next/static/media/apple-touch-icon.d7edaa01.png"
+  },
+  "https://www.syncfusion.com/blogs/post/optimize-next-js-app-bundle-improve-its-performance.aspx": {
+    "url": "https://www.syncfusion.com/blogs/post/optimize-next-js-app-bundle-improve-its-performance.aspx",
+    "title": "Optimize Next.js App Bundle and Improve Its Performance | Syncfusion Blogs",
+    "description": "In this article, we will learn how to optimize the Next.js app by reducing the bundle size and increase the score in Google PageSpeed Insights.",
+    "image": "https://www.syncfusion.com/blogs/wp-content/uploads/2022/09/Optimize-NextJS-App-bundle-performance.png",
+    "siteName": "Syncfusion",
+    "favicon": "https://www.syncfusion.com/blogs/wp-content/uploads/2018/08/favicon.ico"
+  }
+}
